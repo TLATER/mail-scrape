@@ -20,6 +20,8 @@ const expect = chai.expect;
  *
  * Since it is impossible to parse such a domain correctly, at least
  * one test will fail.
+ *
+ * @todo Confirm the email spec.
  */
 describe("extract_domain.from_email", () => {
     /** Test for simple email addresses such as canddi.com. */
@@ -31,11 +33,11 @@ describe("extract_domain.from_email", () => {
     });
 
     /** Test for more complex email addresses with multiple subdomains. */
-    it("should extract foo.bar.zap.example from tim@foo.bar.zap.example", () => {
-        let domain = extract_domain.from_email("tim@foo.bar.zap.example");
+    it("should extract foo.bar.zap.example from tim@foo.bar.zap.ex", () => {
+        let domain = extract_domain.from_email("tim@foo.bar.zap.ex");
 
         expect(domain)
-            .to.equal("foo.bar.zap.example");
+            .to.equal("foo.bar.zap.ex");
     });
 
     /**
