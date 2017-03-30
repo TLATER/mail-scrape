@@ -1,27 +1,28 @@
 {
   "name": "mail-scrape",
   "version": "0.0.1",
-    "description": "A web tool that scrapes information from email domains.",
-    "main": "index.js",
-    "scripts": {
-        "test": "mocha --recursive"
-    },
-    "keywords": [
-        "email",
-        "scraping"
-    ],
-    "author": "Tristan Daniel Maat",
-    "license": "UNLICENSED",
-    "dependencies": {
-        "cheerio": "^0.22.0",
-        "commander": "^2.9.0",
-        "knwl.js": "^1.0.2",
-        "require": "^2.4.20"
-    },
-    "bin": {
-        "mail-scrape": "./index.js"
-    },
-    "devDependencies": {
-        "mocha": "^3.2.0"
-    }
+  "description": "A web tool that scrapes information from email domains.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --recursive"
+  },
+  "keywords": [
+    "email",
+    "scraping"
+  ],
+  "author": "Tristan Daniel Maat",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "commander": "^2.9.0",
+    "knwl.js": "^1.0.2",
+    "require": "^2.4.20"
+  },
+  "bin": {
+    "mail-scrape": "./index.js"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
+  }
 }
