@@ -9,7 +9,6 @@
 
 const extract_domain = require("./extract_domain.js");
 const scrape = require("./scrape.js");
-const print = require("./print.js");
 
 const parser = require("commander");
 const request = require("request");
@@ -37,7 +36,12 @@ function load_from_domain (domain, callback) {
                      + response.statusMessage);
 
         else
-            callback(null, scrape.get_data(html));
+            scrape.get_data(html, (error, data) => {
+                if (error)
+                    callback(null, error.message);
+                else
+                    callback(null, data);
+            });
     });
 }
 
