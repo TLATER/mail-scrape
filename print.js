@@ -6,6 +6,18 @@
  */
 
 /**
+ * Print a horizontal line.
+ */
+function print_horizontal_line () {
+    let column_width = parseInt(process.env.COLUMNS)
+            || process.stdout.columns
+            || 80;
+    let vertical_line = Array(column_width).join("─");
+
+    console.log(vertical_line);
+}
+
+/**
  * Remove jsonld metatags from a json object.
  * @param {Object} data - The object to remove tags from.
  */
@@ -64,11 +76,20 @@ function pretty_jsonld (data) {
 }
 
 /**
- * Print a jsonld object to the console more readably.
- * @param {object} data - A jsonld-based object.
+ * Print jsonld objects to the console more readably.
+ * @param {Array} data - Jsonld-based objects.
  */
 function human_readable (data) {
-    console.log(pretty_jsonld(data));
+    for (let object of data) {
+        print_horizontal_line();
+
+        if (typeof object === "string")
+            console.log(object);
+        else
+            console.log(pretty_jsonld(object));
+    }
+
+    print_horizontal_line();
 }
 
 module.exports = {

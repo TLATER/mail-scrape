@@ -28,13 +28,21 @@ const url = require("url");
  */
 function load_from_domain (domain, callback) {
     request.get(url.format("http://" + domain), (error, response, html) => {
-        if (error)
-            callback(null, error.message);
+        if (error || response.statusCode !== 200) {
+            let message;
 
-        else if (response.statusCode !== 200)
-            callback(null, "Encountered a problem loading" + response.url + ": "
-                     + response.statusCode + ": "
-                     + response.statusMessage);
+            if (error)
+                message = "Encountered a problem loading "
+                + "http://" + domain + ": "
+                + error.message;
+            else
+                message = "Encountered a problem loading "
+                + response.request.uri.href + ": "
+                + response.statusCode + ": "
+                + response.statusMessage;
+
+            callback(null, message);
+        }
 
         else
             scrape.get_data(html, (error, data) => {
@@ -54,20 +62,10 @@ function load_from_domain (domain, callback) {
  * @argument addresses - The email addresses whose domain to parse.
  */
 function process_addresses (addresses) {
-    let column_width = parseInt(process.env.COLUMNS)
-        || process.stdout.columns
-        || 80;
-    let vertical_line = Array(column_width).join("─");
-
     let domains = addresses.map(extract_domain.from_email);
 
     async.map(domains, load_from_domain, (err, results) => {
-        console.log(vertical_line);
-
-        for (let result of results) {
-            print.human_readable(result);
-            console.log(vertical_line);
-        }
+        print.human_readable(results);
     });
 }
 

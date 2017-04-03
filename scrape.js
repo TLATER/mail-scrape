@@ -33,37 +33,46 @@ function is_object(item) {
  * @param {Object} b - The second object.
  * @returns {Object} The resulting object.
  */
-function merge_deep(a, b) {
-    let output = Object.assign({}, a);
+/**
+ * Merge the given objects.
+ * @param {Object} objects - The objects to merge.
+ * @returns {Object} An object containing all unique elements of the
+ *                   merged objects.
+ */
+function merge_deep(...objects) {
+    let target = Object.assign({}, objects[0]);
 
-    if (is_object(a) && is_object(b)) {
-        Object.keys(b).forEach(key => {
-            if (is_object(b[key])) {
-                if (!(key in a))
-                    Object.assign(output, { [key]: b[key] });
+    for (let i = 1; i < objects.length; i++) {
+        let source = objects[i];
+
+        if (is_object(source)) {
+            Object.keys(source).forEach(key => {
+                // If it is a nested object we need to deeply merge
+                // its children
+                if (is_object(target[key]))
+                    target[key] = merge_deep(target[key], source[key]);
+
+                // If it is an array we need to deeply merge the
+                // arrays, but we skip any values already in the
+                // target array.
+                else if (Array.isArray(target[key]))
+                    if (Array.isArray(source[key])) {
+                        for (let element of source[key])
+                            if (!target[key].includes(element))
+                                target[key].push(element);
+                    } else {
+                        target[key].push(source[key]);
+                    }
+
+                // If it is a simple type, we just put it in the
+                // target.
                 else
-                    output[key] = merge_deep(a[key], b[key]);
-
-            } else if (Array.isArray(b[key])) {
-                if (Array.isArray(a[key])) {
-                    output[key] = a[key];
-
-                    for (let element of b[key])
-                        if (!a[key].includes(element))
-                            output[key].push(element);
-                } else {
-                    output[key] = b[key];
-                    if (a[key])
-                        output[key].push(a[key]);
-                }
-
-            } else {
-                Object.assign(output, { [key]: b[key] });
-            }
-        });
+                    Object.assign(target, {[key]: source[key]});
+            });
+        }
     }
 
-    return output;
+    return target;
 }
 
 /**
@@ -77,7 +86,11 @@ function extract_json_ld ($, callback) {
     let data_tags = $("script[type=\"application/ld+json\"]");
 
     async.map(data_tags, (json, callback) => {
+        // Find and parse all jsonld data
         json = JSON.parse($(json).html());
+
+        // If @context is not in the jsonld data, it is not in compact
+        // notation. We use compact notation as an IR.
         if (!json["@context"])
             jsonld.compact(json, "http://schema.org", (error, json) => {
                 if (error)
@@ -87,16 +100,21 @@ function extract_json_ld ($, callback) {
             });
         else
             callback(null, json);
+
     }, (error, results) => {
+        // Return all found jsonld data as a single object
         if (results.length < 1)
             callback(error, null);
         else
-            callback(error, results.reduce((acc, e) => {
-                return merge_deep(acc, e);
-            }));
+            callback(error, merge_deep(...results));
     });
 }
 
+/**
+ * Extract unstructured information.
+ * @param {Object} $ - The cheerio-based jQuery context to parse.
+ * @param {Function} callback - The callback function as defined by async.js.
+ */
 function extract_unstructured ($, callback) {
     let parser = new knwl();
 
@@ -109,8 +127,8 @@ function extract_unstructured ($, callback) {
         "links"
     ];
 
-    let test = knwl_parsers.map(e => parser.get(e));
-    test = test.reduce((acc, result) => {
+    let data = knwl_parsers.map(e => parser.get(e));
+    data = data.reduce((acc, result) => {
         // Check which type the result is and add it to the correct
         // schema.org array.
         for (let e of result) {
@@ -148,7 +166,7 @@ function extract_unstructured ($, callback) {
         return acc;
     }, {"@context": "http://schema.org"});
 
-    callback(null, test);
+    callback(null, data);
 }
 
 /**
@@ -159,10 +177,8 @@ function extract_unstructured ($, callback) {
  */
 function get_data (html, callback) {
     let $ = cheerio.load(html);
-    extract_json_ld($, (err, data) => {
-        extract_unstructured($, (err, more_data) => {
-            callback(null, merge_deep(data, more_data));
-        });
+    async.applyEach([extract_json_ld, extract_unstructured], $, (err, data) => {
+        callback(null, merge_deep(...data));
     });
 }
 
