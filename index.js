@@ -54,12 +54,19 @@ function load_from_domain (domain, callback) {
  * @argument addresses - The email addresses whose domain to parse.
  */
 function process_addresses (addresses) {
+    let column_width = parseInt(process.env.COLUMNS)
+        || process.stdout.columns
+        || 80;
+    let vertical_line = Array(column_width).join("─");
+
     let domains = addresses.map(extract_domain.from_email);
 
     async.map(domains, load_from_domain, (err, results) => {
+        console.log(vertical_line);
+
         for (let result of results) {
-            console.log(results);
             print.human_readable(result);
+            console.log(vertical_line);
         }
     });
 }
