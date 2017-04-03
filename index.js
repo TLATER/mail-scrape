@@ -57,8 +57,12 @@ function process_addresses (addresses) {
     let domains = addresses.map(extract_domain.from_email);
 
     async.map(domains, load_from_domain, (err, results) => {
-        for (let result of results)
+        console.log(Array(parseInt(process.env.COLUMNS)).join("─"));
+
+        for (let result of results) {
             print.human_readable(result);
+            console.log(Array(parseInt(process.env.COLUMNS)).join("─"));
+        }
     });
 }
 

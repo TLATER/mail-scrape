@@ -48,7 +48,7 @@ function pretty_jsonld (data) {
 
             for (let element of data[key]) {
                 if (typeof element === "object")
-                    string += pretty_jsonld(element) + "\n";
+                    string += pretty_jsonld(element).replace(/^/gm, "  ") + "\n";
                 else
                     string += "  " + element + "\n";
             }
