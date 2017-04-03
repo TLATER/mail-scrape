@@ -9,6 +9,7 @@
 
 const extract_domain = require("./extract_domain.js");
 const scrape = require("./scrape.js");
+const print = require("./print.js");
 
 const parser = require("commander");
 const request = require("request");
@@ -56,7 +57,10 @@ function process_addresses (addresses) {
     let domains = addresses.map(extract_domain.from_email);
 
     async.map(domains, load_from_domain, (err, results) => {
-        console.log(results);
+        for (let result of results) {
+            console.log(results);
+            print.human_readable(result);
+        }
     });
 }
 
@@ -68,7 +72,8 @@ function main () {
 
     parser
         .arguments("<addresses...>")
-        .action((address_input) => { addresses = address_input; })
+        .action(address_input => { addresses = address_input; })
+        .option("-j --json-ld", "Output the result as json-ld.")
         .parse(process.argv);
 
     if (addresses === null) {

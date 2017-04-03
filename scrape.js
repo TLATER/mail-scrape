@@ -53,7 +53,8 @@ function merge_deep(a, b) {
                             output[key].push(element);
                 } else {
                     output[key] = b[key];
-                    output[key].push(a[key]);
+                    if (a[key])
+                        output[key].push(a[key]);
                 }
 
             } else {
@@ -77,7 +78,6 @@ function extract_json_ld ($, callback) {
 
     async.map(data_tags, (json, callback) => {
         json = JSON.parse($(json).html());
-
         if (!json["@context"])
             jsonld.compact(json, "http://schema.org", (error, json) => {
                 if (error)
@@ -92,7 +92,7 @@ function extract_json_ld ($, callback) {
             callback(error, null);
         else
             callback(error, results.reduce((acc, e) => {
-                return cheerio.extend(acc, e);
+                return merge_deep(acc, e);
             }));
     });
 }
@@ -159,7 +159,11 @@ function extract_unstructured ($, callback) {
  */
 function get_data (html, callback) {
     let $ = cheerio.load(html);
-    extract_json_ld($, callback);
+    extract_json_ld($, (err, data) => {
+        extract_unstructured($, (err, more_data) => {
+            callback(null, merge_deep(data, more_data));
+        });
+    });
 }
 
 module.exports = {
